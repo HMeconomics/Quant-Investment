@@ -1,0 +1,28 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+
+huaxia_data=pd.read_table('D:\\python_data\\Task1\\stock.txt')
+huaxia_data=huaxia_data[huaxia_data['Stkcd']==600015]
+huaxia_data.index=pd.to_datetime(huaxia_data['Trddt'])
+huaxia_data=huaxia_data['Dretwd']
+
+factor_data=pd.read_table('D:\\python_data\\Task1\\ThreeFactors.txt')
+factor_data.index=pd.to_datetime(factor_data['TradingDate'])
+factor_data=factor_data[huaxia_data.index[0]:]
+factor_data=factor_data.iloc[:,[3,5,7]]
+huaxia_data=pd.DataFrame(huaxia_data[:factor_data.index[-1]])
+
+Ret=pd.merge(huaxia_data,factor_data,how='inner',left_index=True,right_index=True)
+
+plt.subplot(2,2,1)
+plt.scatter(Ret['RiskPremium2'],Ret['Dretwd'])
+plt.subplot(2,2,2)
+plt.scatter(Ret['SMB2'],Ret['Dretwd'])
+plt.subplot(2,2,3)
+plt.scatter(Ret['HML2'],Ret['Dretwd'])
+
+model=sm.OLS(Ret['Dretwd'],sm.add_constant(Ret.iloc[:,1:4]))
+result=model.fit()
+parameters=result.params
+parameters.name='Parameters'
